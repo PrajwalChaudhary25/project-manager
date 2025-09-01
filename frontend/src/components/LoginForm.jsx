@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { jwtDecode } from 'jwt-decode';
 
-const Login = () => {
+const Login = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,21 +20,21 @@ const Login = () => {
           // Store tokens and user data
           localStorage.setItem('access_token', response.data.access);
           localStorage.setItem('refresh_token', response.data.refresh);
-          
-          // Store user info
-          const userInfo = {
-              username: response.data.username,
-              is_manager: response.data.is_manager
-          };
-          localStorage.setItem('user', JSON.stringify(userInfo));
-          
+        
           // Decode token for verification
           const decodedToken = jwtDecode(response.data.access);
           console.log('Decoded token:', decodedToken);
-          console.log('User info:', userInfo);
+
+          const profile = await axiosInstance.get('user/profile/')
+          console.log('Profile data:', profile.data);
+          const userInfo = {
+            username: profile.data.username,
+            is_manager: profile.data.is_manager
+          }
+          localStorage.setItem('user', JSON.stringify(userInfo));
+          onLoginSuccess(); 
           
-          // Check if user is manager using the response data
-          if (response.data.is_manager === true) {
+          if (profile.data.is_manager === true) {
               console.log('Redirecting to manager dashboard');
               navigate('/manager-dashboard');
           } else {

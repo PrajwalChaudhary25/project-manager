@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 
-const EmployeeDashboard = () => {
+const EmployeeDashboard = ({onLogout}) => {
     const [status, setStatus] = useState('unchecked-in');
     const [jiraKey, setJiraKey] = useState('');
     const [logs, setLogs] = useState([]);
@@ -59,6 +59,8 @@ const EmployeeDashboard = () => {
     const handleLogout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        onLogout();
         navigate('/login');
     };
 
