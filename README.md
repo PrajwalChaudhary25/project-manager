@@ -1,17 +1,17 @@
-# Subscription Management
-This is a full-stack web application for managing user subscriptions. It consists of a Django REST framework backend and a React frontend. This README provides a guide for setting up and running the project locally.
+# Project Manager
+This is a full-stack web application for managing employee time logs and daily logsheet submissions. It consists of a Django REST framework backend and a React frontend. This README provides a guide for setting up and running the project locally.
 
 ## ✨ Features
-* **User Authentication:** Secure login and session management.
 
-* **Subscription Plans:** Manage and view various subscription tiers.
+* **User Authentication:** Secure login for employees and managers.
 
-* **Subscription Lifecycle:** Handle subscription creation, activation, and renewal.
+* **Time Tracking:** Employees can check in, check out, and track break times.
 
-* **Payment Proof Upload:** Users can upload proof of payment for manual verification.
+* **Logsheet Submission:** Users can submit their daily logsheets with a JIRA key for approval.
 
-* **Admin Panel:** A Django admin interface for administrators to manage users, plans, and verify payments.
+* **Logsheet Approval:** A dedicated dashboard for managers to view, approve, and reject submitted logsheets.
 
+* **Real-time Status:** The application updates to reflect the employee's current work status and shows a "Workday Complete" message once a logsheet has been submitted.
 
 # Backend Setup
 ## Table of Contents
