@@ -164,16 +164,17 @@ class LogsheetStatusView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         user = request.user
-        today = timezone.now().date()
+        # Correct way to get today's date in the current timezone
+        today = timezone.localdate() 
         
-        # Check if a logsheet exists for the user today, regardless of status
+        # Check if a logsheet exists for the user today
         has_submitted = LogSheetApproval.objects.filter(
             user=user,
             date=today
         ).exists()
-        
+        print(has_submitted)
         return Response({'has_submitted': has_submitted})
 
 

@@ -7,50 +7,59 @@ const EmployeeDashboard = ({ onLogout }) => {
     const [jiraKey, setJiraKey] = useState('');
     const [logs, setLogs] = useState([]);
     const [message, setMessage] = useState('');
-    const [isLogsheetSubmitted, setIsLogsheetSubmitted] = useState(false); // New state variable
+    const [isLogsheetSubmitted, setIsLogsheetSubmitted] = useState(false);
     const navigate = useNavigate();
 
+    // Fetches time logs and sets the current work status
     const fetchLogsAndSetStatus = async () => {
-        try {
-            const response = await axiosInstance.get('time-logs/');
-            setLogs(response.data);
-            if (response.data.length > 0) {
-                const lastLog = response.data[response.data.length - 1];
-
-                if (lastLog.type === 'check_in' || lastLog.type === 'break_end') {
-                    setStatus('checked-in');
-                } else if (lastLog.type === 'break_start') {
-                    setStatus('on-break');
-                } else if (lastLog.type === 'check_out') {
-                    setStatus('checked-out');
-                }
-            } else {
-                setStatus('unchecked-in');
+        const response = await axiosInstance.get('time-logs/');
+        setLogs(response.data);
+        if (response.data.length > 0) {
+            const lastLog = response.data[response.data.length - 1];
+            if (lastLog.type === 'check_in' || lastLog.type === 'break_end') {
+                setStatus('checked-in');
+            } else if (lastLog.type === 'break_start') {
+                setStatus('on-break');
+            } else if (lastLog.type === 'check_out') {
+                setStatus('checked-out');
             }
-            console.log('Logs fetched:', response.data);
-        } catch (error) {
-            console.error('Error fetching time logs:', error);
-            if (error.response && error.response.status === 401) {
-                navigate('/login');
-            }
-            setMessage(error.response.data.detail || 'Failed to fetch logs.');
-        }
-    };
-
-    const checkLogsheetStatus = async () => {
-        try {
-            const response = await axiosInstance.get('logsheet-status/'); // Assume a new backend endpoint
-            setIsLogsheetSubmitted(response.data.hasSubmitted);
-        } catch (error) {
-            console.error('Error fetching logsheet status:', error);
+        } else {
+            setStatus('unchecked-in');
         }
     };
     
-    // Check logsheet status on initial load and whenever logs change
+    // Checks the logsheet submission status for the current day
+    const checkLogsheetStatus = async () => {
+        const response = await axiosInstance.get('logsheet-status/');
+        setIsLogsheetSubmitted(response.data.has_submitted); // Note: I've updated this to use 'has_submitted' based on your backend code
+    };
+    
+    // Use a single async function with Promise.all for initial load
     useEffect(() => {
-        fetchLogsAndSetStatus();
-        checkLogsheetStatus();
-    }, []);
+        const fetchAllData = async () => {
+            try {
+                // Wait for both requests to complete successfully
+                await Promise.all([
+                    fetchLogsAndSetStatus(),
+                    checkLogsheetStatus(),
+                ]);
+            } catch (error) {
+                console.error('Initial data fetch failed:', error);
+                // Handle 401 or other errors for all initial requests
+                if (error.response?.status === 401) {
+                    navigate('/login');
+                }
+                setMessage(error.response?.data?.detail || 'Failed to fetch initial data.');
+            }
+        };
+
+        fetchAllData();
+    }, [navigate]); // The dependency array is correct
+
+    // You can add a separate useEffect to monitor state changes for debugging
+    useEffect(() => {
+        console.log('Is logsheet submitted:', isLogsheetSubmitted);
+    }, [isLogsheetSubmitted]);
 
     const handleAction = async (action) => {
         try {
@@ -78,11 +87,14 @@ const EmployeeDashboard = ({ onLogout }) => {
             setMessage(response.data.detail);
             
             setStatus(newStatus);
-            await fetchLogsAndSetStatus();
-            await checkLogsheetStatus();
+            // Re-fetch all data after a successful action
+            await Promise.all([
+                fetchLogsAndSetStatus(),
+                checkLogsheetStatus(),
+            ]);
 
         } catch (error) {
-            setMessage(error.response.data.detail || 'An error occurred.');
+            setMessage(error.response?.data?.detail || 'An error occurred.');
         }
     };
 
@@ -92,10 +104,10 @@ const EmployeeDashboard = ({ onLogout }) => {
             await axiosInstance.post('submit-logsheet/', { jira_key: jiraKey });
             setMessage('Logsheet submitted for approval!');
             setJiraKey('');
-            setIsLogsheetSubmitted(true); // Update state on successful submission
+            setIsLogsheetSubmitted(true);
             await fetchLogsAndSetStatus();
         } catch (error) {
-            setMessage(error.response.data.detail || 'Failed to submit logsheet.');
+            setMessage(error.response?.data?.detail || 'Failed to submit logsheet.');
         }
     };
 
@@ -109,7 +121,7 @@ const EmployeeDashboard = ({ onLogout }) => {
         navigate('/login');
     };
 
-    const isWorkDayComplete = isLogsheetSubmitted; // Use the new state variable
+    const isWorkDayComplete = isLogsheetSubmitted;
     const isCheckedOut = status === 'checked-out';
 
     return (
