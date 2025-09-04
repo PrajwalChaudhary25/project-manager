@@ -181,3 +181,6 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'dashboard.User'
+
+USE_TZ = True
+TIME_ZONE = 'UTC'

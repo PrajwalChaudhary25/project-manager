@@ -12,5 +12,10 @@ class CustomUserAdmin(BaseUserAdmin):
     )
 
 # Register the other models
-admin.site.register(TimeLog)
-admin.site.register(LogSheetApproval)
+class TimeLogAdmin(admin.ModelAdmin):
+    list_display = ('user', 'timestamp', 'type')
+admin.site.register(TimeLog, TimeLogAdmin)
+    
+class LogSheetApprovalAdmin(admin.ModelAdmin):
+    list_display = ('user', 'date', 'jira_key','status')
+admin.site.register(LogSheetApproval,LogSheetApprovalAdmin)
